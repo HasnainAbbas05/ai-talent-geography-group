@@ -1,0 +1,334 @@
+{
+  "publisher": "Carnegie Endowment for International Peace",
+  "authors": [
+    "Damien Ma",
+    "Binyi Yang"
+  ],
+  "study_title": "Who’s Ahead in the Global AI Talent Race?",
+  "study_url": "https://carnegieendowment.org/features/whos-ahead-in-the-global-ai-talent-race",
+  "publication_date": "2026-09-23",
+  "retrieved_date": "2026-10-24",
+  "conference_cohort_year": 2025,
+  "workplace_observation_year": 2026,
+  "charts": {
+    "30265299": {
+      "url": "https://public.flourish.studio/visualisation/30265299/embed?1355501",
+      "title": "The U.S. Maintains a Significant Lead as a Magnet for Global Talent ",
+      "columns": [
+        "Country/region",
+        "Left",
+        "Arrived",
+        "Net",
+        "Net Positive",
+        "Net Negative"
+      ],
+      "rows": [
+        [
+          "USA",
+          155,
+          2300,
+          "+2,145",
+          2145,
+          null
+        ],
+        [
+          "Singapore",
+          31,
+          249,
+          "+218",
+          218,
+          null
+        ],
+        [
+          "UK",
+          114,
+          210,
+          "+96",
+          96,
+          null
+        ],
+        [
+          "Canada",
+          122,
+          178,
+          "+56",
+          56,
+          null
+        ],
+        [
+          "Europe",
+          264,
+          308,
+          "+44",
+          44,
+          null
+        ],
+        [
+          "Australia",
+          31,
+          65,
+          "+34",
+          34,
+          null
+        ],
+        [
+          "Russia",
+          54,
+          2,
+          "-52",
+          null,
+          -52
+        ],
+        [
+          "South Korea",
+          135,
+          31,
+          "-104",
+          null,
+          -104
+        ],
+        [
+          "Other",
+          503,
+          162,
+          "-341",
+          null,
+          -341
+        ],
+        [
+          "India",
+          370,
+          3,
+          "-367",
+          null,
+          -367
+        ],
+        [
+          "China",
+          1847,
+          118,
+          "-1,729",
+          null,
+          -1729
+        ]
+      ]
+    },
+    "30285922": {
+      "url": "https://public.flourish.studio/visualisation/30285922/embed?1355501",
+      "title": "Across Asia, South Korea Leads and India Lags in Retaining Talent ",
+      "columns": [
+        "Country/region",
+        "Own graduates",
+        "Retention",
+        "Retention Bar"
+      ],
+      "rows": [
+        [
+          "USA",
+          "1,369",
+          "88.7%",
+          88.7
+        ],
+        [
+          "South Korea",
+          "591",
+          "77.2%",
+          77.2
+        ],
+        [
+          "China",
+          "5,903",
+          "68.7%",
+          68.7
+        ],
+        [
+          "Europe",
+          "662",
+          "60.1%",
+          60.1
+        ],
+        [
+          "Australia",
+          "59",
+          "47.5%",
+          47.5
+        ],
+        [
+          "UK",
+          "216",
+          "47.2%",
+          47.2
+        ],
+        [
+          "Singapore",
+          "53",
+          "41.5%",
+          41.5
+        ],
+        [
+          "Canada",
+          "205",
+          "40.5%",
+          40.5
+        ],
+        [
+          "Other",
+          "742",
+          "32.2%",
+          32.2
+        ],
+        [
+          "Russia",
+          "69",
+          "21.7%",
+          21.7
+        ],
+        [
+          "India",
+          "411",
+          "10.0%",
+          10
+        ]
+      ]
+    },
+    "30286797": {
+      "url": "https://public.flourish.studio/visualisation/30286797/embed?1355501",
+      "title": "Outside of China, Top Chinese Talent Strongly Prefers to Work in U.S.",
+      "columns": [
+        "Undergraduate",
+        "Graduate",
+        "Works in",
+        "People",
+        "People Bar"
+      ],
+      "rows": [
+        [
+          "China",
+          "China",
+          "China",
+          3619,
+          3619
+        ],
+        [
+          "USA",
+          "USA",
+          "USA",
+          1093,
+          1093
+        ],
+        [
+          "China",
+          "USA",
+          "USA",
+          1071,
+          1071
+        ],
+        [
+          "South Korea",
+          "South Korea",
+          "South Korea",
+          407,
+          407
+        ],
+        [
+          "Europe",
+          "Europe",
+          "Europe",
+          376,
+          376
+        ],
+        [
+          "India",
+          "USA",
+          "USA",
+          246,
+          246
+        ],
+        [
+          "Other",
+          "USA",
+          "USA",
+          212,
+          212
+        ],
+        [
+          "Other",
+          "Other",
+          "Other",
+          198,
+          198
+        ],
+        [
+          "China",
+          "Singapore",
+          "Singapore",
+          147,
+          147
+        ],
+        [
+          "China",
+          "USA",
+          "China",
+          132,
+          132
+        ],
+        [
+          "China",
+          "No grad school",
+          "China",
+          123,
+          123
+        ],
+        [
+          "China",
+          "China",
+          "USA",
+          108,
+          108
+        ],
+        [
+          "USA",
+          "No grad school",
+          "USA",
+          100,
+          100
+        ],
+        [
+          "UK",
+          "UK",
+          "UK",
+          94,
+          94
+        ],
+        [
+          "China",
+          "Europe",
+          "Europe",
+          80,
+          80
+        ],
+        [
+          "South Korea",
+          "USA",
+          "USA",
+          70,
+          70
+        ],
+        [
+          "Europe",
+          "USA",
+          "USA",
+          69,
+          69
+        ],
+        [
+          "Canada",
+          "Canada",
+          "Canada",
+          69,
+          69
+        ]
+      ]
+    }
+  }
+}
