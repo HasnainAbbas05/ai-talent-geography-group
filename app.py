@@ -76,9 +76,9 @@ def style(fig, height=420, **kw):
 # ---------------------------------------------------------------- header
 st.title("Do countries that train AI researchers keep them?")
 st.markdown(
-    "**Question:** do countries that train AI researchers retain them, or does talent concentrate in a few "
+    "**Question:** Do countries that train AI researchers retain them, or does talent concentrate in a few "
     "destination countries?  \n"
-    "**For:** a government policy analyst weighing how to develop, retain and attract AI research talent."
+    "**For:** A government policy analyst weighing how to develop, retain and attract AI research talent."
 )
 
 top_train = countries.nlargest(2, "trained")
@@ -114,38 +114,267 @@ tab_over, tab_ret, tab_net, tab_dest, tab_path, tab_ver, tab_about = st.tabs(
 )
 
 # ---------------------------------------------------------------- 1 train vs work
+# This block is self-contained: other team members' tabs and data are unchanged.
 with tab_over:
-    st.subheader("Where researchers trained vs where they work")
+    st.subheader("Where AI researchers trained vs where they work")
     st.markdown(
-        "Each geography's share of the whole sample, at undergraduate level (blue) and at the 2026 workplace "
-        "(orange). A longer orange bar means the place hosts more researchers than it trained."
+        "**The key comparison is the gap, not just the size of the bars.** "
+        "A place has a *positive* gap when more researchers work there in 2026 "
+        "than obtained their undergraduate degree there. A *negative* gap "
+        "means the reverse. The gap measures different affiliations in this "
+        "sample; it is **not** a count of documented migration events."
     )
-    o = df.sort_values("working_share")
-    fig = go.Figure()
-    fig.add_bar(
-        y=o.label, x=o.trained_share, orientation="h", name="Trained (undergraduate)", marker_color=BLUE,
-        customdata=o[["trained"]], hovertemplate="%{y}<br>Trained: %{customdata[0]:,} (%{x:.1f}% of sample)<extra></extra>",
+
+    # The net chart shows the answer immediately; the original comparison is
+    # preserved as an alternate view for those who want to inspect both totals.
+    chart_mode = st.radio(
+        "Which comparison would you like to see?",
+        ["Net shift (recommended)", "Train vs work (two bars)"],
+        horizontal=True,
+        key="tab1_chart_mode",
     )
-    fig.add_bar(
-        y=o.label, x=o.working_share, orientation="h", name="Working (2026)", marker_color=ORANGE,
-        customdata=o[["working"]], hovertemplate="%{y}<br>Working: %{customdata[0]:,} (%{x:.1f}% of sample)<extra></extra>",
+    ctl1, ctl2, ctl3, ctl4 = st.columns([1.15, 1.4, 1.35, 1.4])
+    units = ctl1.selectbox(
+        "Display units",
+        ["Share of sample (%)", "Researchers (count)"],
+        key="tab1_units",
+        help="Shares use the same denominator: all 10,280 researchers in the study sample.",
     )
-    fig.update_layout(barmode="group", bargap=0.35, bargroupgap=0.08, xaxis_title="Share of the 10,280 researchers (%)")
-    st.plotly_chart(style(fig, 520), width="stretch")
-    st.caption(
-        f"Reading it: China trained {pct(df[df.geo=='China'].trained_share.iloc[0])} of the sample and hosts "
-        f"{pct(df[df.geo=='China'].working_share.iloc[0])}; the USA trained "
-        f"{pct(usa.trained_share)} and hosts {pct(usa.working_share)}. Europe and Other are grouped regions, not countries."
+    sort_by = ctl2.selectbox(
+        "Sort geographies by",
+        ["Net shift (largest gain first)", "Workplaces (largest first)",
+         "Undergraduate training (largest first)", "Alphabetical"],
+        key="tab1_sort",
     )
-    with st.expander("Table view"):
-        st.dataframe(
-            o.sort_values("working", ascending=False)[["label", "trained", "working", "trained_share", "working_share"]]
-            .rename(columns={"label": "Geography", "trained": "Trained (n)", "working": "Working (n)",
-                             "trained_share": "Trained %", "working_share": "Working %"}),
-            hide_index=True, width="stretch",
-            column_config={"Trained %": st.column_config.NumberColumn(format="%.1f"),
-                           "Working %": st.column_config.NumberColumn(format="%.1f")},
+    small_only = ctl3.checkbox(
+        "Focus on smaller countries",
+        value=False,
+        key="tab1_small_only",
+        help="Only countries with under 10% of the sample's undergraduate affiliations; "
+             "this excludes China and the USA. The cutoff is a viewing aid, "
+             "not a measure of statistical reliability.",
+    )
+
+    # Keep actual countries separate from Europe/Other, which are published
+    # multi-country aggregates, not comparable single countries.
+    shown = countries.copy()
+    if small_only:
+        shown = shown[shown.trained_share < 10].copy()
+    focus = ctl4.selectbox(
+        "Highlight a country",
+        ["All countries"] + sorted(shown.geo.tolist()),
+        key="tab1_highlight",
+    )
+    shown["shift_pp"] = shown.working_share - shown.trained_share
+    # Always show the undergraduate denominator so small bases are visible.
+    shown["plot_label"] = shown.apply(
+        lambda r: f"{r.geo} (n={int(r.trained):,})", axis=1
+    )
+    if sort_by.startswith("Net shift"):
+        shown = shown.sort_values(["shift_pp", "geo"], ascending=[True, True])
+    elif sort_by.startswith("Workplaces"):
+        shown = shown.sort_values(["working", "geo"], ascending=[True, True])
+    elif sort_by.startswith("Undergraduate"):
+        shown = shown.sort_values(["trained", "geo"], ascending=[True, True])
+    else:
+        shown = shown.sort_values("geo", ascending=False)
+
+    # Okabe-Ito-inspired hues with sign and data labels as redundant cues.
+    # Positive values are blue; negative values are vermilion.
+    gain_colour = "#0072B2"
+    loss_colour = "#D55E00"
+    work_colour = "#E69F00"
+    faded = [1.0 if focus == "All countries" or g == focus else 0.24 for g in shown.geo]
+    share_units = units.startswith("Share")
+    quantity = "share" if share_units else "count"
+
+    chart = go.Figure()
+    if chart_mode.startswith("Net shift"):
+        values = shown.shift_pp if share_units else shown.net
+        text_values = ([f"{v:+.1f} pp" for v in values] if share_units
+                       else [f"{int(v):+,}" for v in values])
+        chart.add_bar(
+            y=shown.plot_label,
+            x=values,
+            orientation="h",
+            name="Difference",
+            marker=dict(
+                color=[gain_colour if v >= 0 else loss_colour for v in values],
+                opacity=faded,
+            ),
+            text=text_values,
+            textposition="outside",
+            textfont=dict(size=12),
+            cliponaxis=False,
+            customdata=shown[["trained", "trained_share", "working", "working_share", "net", "shift_pp"]],
+            hovertemplate=(
+                "<b>%{y}</b><br>Undergraduate trained: %{customdata[0]:,} "
+                "(%{customdata[1]:.1f}% of sample)<br>Working in 2026: %{customdata[2]:,} "
+                "(%{customdata[3]:.1f}% of sample)<br>Difference: "
+                "%{customdata[4]:+,} researchers (%{customdata[5]:+.1f} pp)<extra></extra>"
+            ),
+            showlegend=False,
         )
+        # Space around both ends prevents values being truncated at the axes.
+        extent = max(abs(float(values.min())), abs(float(values.max())), 1.0)
+        chart.update_xaxes(
+            title="Working minus undergraduate training (percentage points)"
+                  if share_units else "Working minus undergraduate training (researchers)",
+            range=[-extent * 1.34, extent * 1.34],
+            zeroline=True, zerolinecolor="rgba(140,145,150,0.8)", zerolinewidth=1.4,
+            showgrid=True, gridcolor="rgba(130,135,140,0.13)",
+        )
+        chart.update_layout(
+            title="Net difference: where workplaces exceed (or trail) undergraduate training",
+            bargap=0.38,
+        )
+        st.caption("**Blue (+)** = more 2026 workplaces than undergraduate affiliations. "
+                   "**Vermilion (−)** = fewer. Values show either percentage points (pp) "
+                   "or researchers, not a migration rate.")
+    else:
+        trained_v = shown.trained_share if share_units else shown.trained
+        working_v = shown.working_share if share_units else shown.working
+        label = (lambda v: f"{v:.1f}%") if share_units else (lambda v: f"{int(v):,}")
+        shared_hover = (
+            "<b>%{y}</b><br>Undergraduate trained: %{customdata[0]:,} "
+            "(%{customdata[1]:.1f}% of sample)<br>Working in 2026: %{customdata[2]:,} "
+            "(%{customdata[3]:.1f}% of sample)<br>Difference: "
+            "%{customdata[4]:+,} researchers (%{customdata[5]:+.1f} pp)<extra></extra>"
+        )
+        details = shown[["trained", "trained_share", "working", "working_share", "net", "shift_pp"]]
+        chart.add_bar(
+            y=shown.plot_label, x=trained_v, orientation="h",
+            name="Undergraduate trained", marker=dict(color=gain_colour, opacity=faded),
+            text=[label(v) for v in trained_v], textposition="outside", cliponaxis=False,
+            customdata=details, hovertemplate=shared_hover,
+        )
+        chart.add_bar(
+            y=shown.plot_label, x=working_v, orientation="h",
+            name="Working (2026)", marker=dict(color=work_colour, opacity=faded),
+            text=[label(v) for v in working_v], textposition="outside", cliponaxis=False,
+            customdata=details, hovertemplate=shared_hover,
+        )
+        ceiling = max(float(trained_v.max()), float(working_v.max()), 1.0)
+        chart.update_xaxes(
+            title="Share of full 10,280-person sample (%)" if share_units else "Researchers (people)",
+            range=[0, ceiling * 1.23], showgrid=True,
+            gridcolor="rgba(130,135,140,0.13)", zeroline=False,
+        )
+        chart.update_layout(
+            title="Undergraduate education compared with the 2026 workplace",
+            barmode="group", bargap=0.27, bargroupgap=0.1,
+            legend=dict(orientation="h", x=0, y=1.08, yanchor="bottom"),
+        )
+        st.caption("**Blue** = undergraduate education geography; **amber** = 2026 workplace geography. "
+                   "Both bars use the same 10,280-person denominator when percentages are selected.")
+
+    chart.update_layout(
+        height=max(420, 54 * len(shown) + 125),
+        margin=dict(l=8, r=85, t=95 if chart_mode.startswith("Train") else 68, b=35),
+        hovermode="closest",
+        font=dict(size=12),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+    )
+    chart.update_yaxes(
+        title=None,
+        categoryorder="array",
+        categoryarray=shown.plot_label.tolist(),
+        showgrid=False,
+        automargin=True,
+    )
+    st.plotly_chart(chart, width="stretch", key="tab1_comparison_chart",
+                    config={"displaylogo": False})
+
+    # Short, source-based conclusion that updates when a particular country is highlighted.
+    if focus == "All countries":
+        top_gain = shown.loc[shown.shift_pp.idxmax()]
+        top_loss = shown.loc[shown.shift_pp.idxmin()]
+        qualifier = ("among the smaller countries shown" if small_only
+                     else "among the countries in this sample")
+        st.info(
+            f"**What this shows {qualifier}:** **{top_gain.geo}** has the largest positive difference "
+            f"({top_gain.shift_pp:+.1f} pp; {int(top_gain.net):+,} researchers), "
+            f"while **{top_loss.geo}** has the largest negative difference "
+            f"({top_loss.shift_pp:+.1f} pp; {int(top_loss.net):+,}). "
+            "A positive gap means more workplace affiliations than undergraduate affiliations, "
+            "not necessarily cross-border migration."
+        )
+    else:
+        r = shown[shown.geo == focus].iloc[0]
+        caution = (f" Its undergraduate base is only {int(r.trained):,} researchers, "
+                   "so small count changes matter." if r.trained < 100 else "")
+        st.info(
+            f"**{focus}:** {int(r.trained):,} researchers received their undergraduate education here "
+            f"({r.trained_share:.1f}% of the sample), compared with {int(r.working):,} "
+            f"working here in 2026 ({r.working_share:.1f}%). "
+            f"The difference is **{int(r.net):+,} researchers** "
+            f"(**{r.shift_pp:+.1f} percentage points**).{caution}"
+        )
+
+    # Published multi-country groups must not silently enter the country ranking.
+    group_d = regions.copy().assign(shift_pp=lambda z: z.working_share - z.trained_share)
+    with st.expander("Europe and Other are grouped regions - view them separately"):
+        st.caption(
+            "These are aggregates of multiple countries, not individual countries. "
+            "Being trained and employed anywhere within the same aggregate counts as "
+            "a match, even if the two countries differ."
+        )
+        st.dataframe(
+            group_d[["geo", "trained", "working", "net", "trained_share", "working_share", "shift_pp"]]
+            .rename(columns={"geo": "Grouped region", "trained": "Trained (n)",
+                             "working": "Working (n)", "net": "Difference (n)",
+                             "trained_share": "Trained (%)", "working_share": "Working (%)",
+                             "shift_pp": "Difference (pp)"}),
+            hide_index=True, width="stretch",
+            column_config={
+                "Trained (%)": st.column_config.NumberColumn(format="%.1f"),
+                "Working (%)": st.column_config.NumberColumn(format="%.1f"),
+                "Difference (pp)": st.column_config.NumberColumn(format="%+.1f"),
+            },
+        )
+
+    with st.expander("Inspect and download the numbers behind this chart"):
+        table_data = shown[["geo", "trained", "working", "net", "trained_share", "working_share", "shift_pp"]]
+        st.dataframe(
+            table_data.rename(columns={"geo": "Country", "trained": "Trained (n)",
+                                       "working": "Working (n)", "net": "Difference (n)",
+                                       "trained_share": "Trained (%)", "working_share": "Working (%)",
+                                       "shift_pp": "Difference (pp)"}),
+            hide_index=True, width="stretch",
+            column_config={
+                "Trained (%)": st.column_config.NumberColumn(format="%.1f"),
+                "Working (%)": st.column_config.NumberColumn(format="%.1f"),
+                "Difference (pp)": st.column_config.NumberColumn(format="%+.1f"),
+            },
+        )
+        download_data = df.assign(shift_pp=df.working_share-df.trained_share)[
+            ["geo", "geography_type", "trained", "working", "net", "trained_share", "working_share", "shift_pp"]
+        ].rename(columns={"geo": "geography", "trained": "trained_n", "working": "working_n",
+                          "net": "difference_n", "trained_share": "trained_share_pct",
+                          "working_share": "working_share_pct"})
+        st.download_button(
+            "Download all 11 geographies (CSV)",
+            download_data.to_csv(index=False).encode("utf-8"),
+            file_name="tab1_train_vs_work.csv", mime="text/csv",
+            key="tab1_download",
+        )
+
+    st.caption(
+        "**Data:** NeurIPS 2025 accepted-paper authors with complete career histories "
+        f"(n={COHORT:,}, approximately 40% of unique authors). "
+        "Undergraduate training refers to the institution's country, not nationality or an AI-specific qualification. "
+        "Workplace geography refers to employer affiliation observed in 2026, not necessarily physical residence. "
+        "A single cohort cannot demonstrate trends or policy effects. "
+        "Australia, Singapore and Russia have fewer than 100 undergraduate-affiliated researchers each."
+    )
+    st.caption(
+        f"**Source and last data retrieval:** [Ma & Yang, Carnegie Endowment (23 September 2026)]({CARNEGIE_URL}); "
+        "public Flourish retention and mobility charts retrieved **24 October 2026**. "
+        "Processed from `data/published_chart_data.json` using `data/build_data.mjs`. "
+        "For retention, see **Tab 2**; for arrivals/departures, see **Tab 3**; "
+        "for detailed verification, see **Tab 6** and **Data and limits**."
+    )
 
 # ---------------------------------------------------------------- 2 retention
 with tab_ret:
