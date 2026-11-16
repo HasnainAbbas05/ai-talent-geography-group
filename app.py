@@ -109,8 +109,8 @@ st.caption(
     "\"Trained\" = country of undergraduate institution. \"Working\" = employer country in 2026."
 )
 
-tab_over, tab_ret, tab_net, tab_dest, tab_path, tab_ver, tab_about = st.tabs(
-    ["1 · Train vs work", "2 · Retention", "3 · Attract & net flow", "4 · Where they work", "5 · Career paths", "6 · Verify a number", "Data and limits"]
+tab_over, tab_ret, tab_net, tab_dest, tab_path, tab_wfcomp, tab_about = st.tabs(
+    ["1 · Train vs work", "2 · Retention", "3 · Attract & net flow", "4 · Where they work", "5 · Career paths", "6 · Workforce Composition", "Data and limits"]
 )
 
 # ---------------------------------------------------------------- 1 train vs work
@@ -592,57 +592,31 @@ with tab_path:
         st.dataframe(p[["u", "g", "w", "n"]].rename(columns={"u": "Undergraduate", "g": "Graduate", "w": "Work 2026", "n": "Researchers"}),
                      hide_index=True, width="stretch")
 
-# ---------------------------------------------------------------- 5 verify
-with tab_ver:
-    st.subheader("Trace a number back to the source")
-    geo = st.selectbox("Geography", df.geo.tolist(), index=df.geo.tolist().index("USA"))
-    a = retention_src[retention_src.country_or_region == geo].iloc[0]
-    b = mobility_src[mobility_src.country_or_region == geo].iloc[0]
-    trained, left = int(a.undergraduate_educated_count), int(b.left_count)
-    arrived = int(b.arrived_count)
-    retained = trained - left
-    calc = retained / trained * 100
-    pub = float(a.published_retention_percent)
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        st.markdown("**① Source table A** · `published_retention.csv`")
-        st.dataframe(a.drop("source_url").astype(str).to_frame("value"), width="stretch")
-        st.markdown(f"[Flourish chart]({a.source_url})")
-    with c2:
-        st.markdown("**② Source table B** · `published_mobility.csv`")
-        st.dataframe(b.drop("source_url").astype(str).to_frame("value"), width="stretch")
-        st.markdown(f"[Flourish chart]({b.source_url})")
-    with c3:
-        st.markdown("**③ Calculation**")
-        st.markdown(
-            f"- Trained (A): **{trained:,}**\n"
-            f"- Work elsewhere, “Left” (B): **{left:,}**\n"
-            f"- Stayed = {trained:,} − {left:,} = **{retained:,}**\n"
-            f"- Retention = {retained:,} / {trained:,} × 100 = **{calc:.6f}%**\n"
-            f"- Published (rounded to 1 dp): **{pub}%**  →  matches: **{round(calc, 1) == pub}**\n"
-            f"- Working here = {retained:,} + arrived {arrived:,} = **{retained + arrived:,}**"
-        )
-    row = df[df.geo == geo].iloc[0]
-    ok = abs(row.ret - calc) < 1e-4 and int(row.working) == retained + arrived
-    (st.success if ok else st.error)(
-        f"The dashboard shows {row.ret:.1f}% for {geo}. "
-        + ("It matches" if ok else "It does NOT match")
-        + " the recomputation from the two source tables."
-    )
+# ---------------------------------------------------------------- 5 Workforce Composition
+with tab_wfcomp:
+    st.subheader("AI Workforce Composition")
+    st.markdown("Homegrown talent vs Imported talent making up the local workforce.")
 
-    st.markdown("#### Integrity checks on the whole dataset")
-    checks = pd.DataFrame([
-        ("Undergraduate counts sum to 10,280", int(df.trained.sum()) == 10280),
-        ("Work-destination counts sum to 10,280", int(df.working.sum()) == 10280),
-        ("Net differences sum to 0", int(df.net.sum()) == 0),
-        ("Every recalculated retention rounds to the published rate",
-         bool((df.ret.round(1) == df.ret_pub).all())),
-        ("Selected career paths: 18 rows, total 8,214", len(paths) == 18 and int(paths.researcher_count.sum()) == 8214),
-    ], columns=["Check", "Passed"])
-    st.dataframe(checks, hide_index=True, width="stretch")
-    st.download_button("Download the main dataset (CSV)", (DATA / "ai_talent_country_summary.csv").read_bytes(),
-                       "ai_talent_country_summary.csv", "text/csv")
-
+    df_sorted_dest = summary.sort_values(by='work_destination_count', ascending=False)
+ 
+    fig_comp2 = go.Figure()
+    fig_comp2.add_trace(go.Bar(
+        x=df_sorted_dest['country_or_region'],
+        y=df_sorted_dest['same_origin_work_group_count'],
+        name='Homegrown Talent',
+        marker_color=BLUE
+    ))
+    fig_comp2.add_trace(go.Bar(
+        x=df_sorted_dest['country_or_region'],
+        y=df_sorted_dest['educated_elsewhere_working_here_count'],
+        name='Imported Talent',
+        marker_color=ORANGE
+    ))
+    
+    fig_comp2.update_layout(barmode='stack', legend_title_text='Talent Source', 
+		xaxis_title='Country or Region', yaxis_title='No. of Researchers')
+    st.plotly_chart(fig_comp2, width="stretch")
+ 
 # ---------------------------------------------------------------- about
 with tab_about:
     st.subheader("Data and limits")
