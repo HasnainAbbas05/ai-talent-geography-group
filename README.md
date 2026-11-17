@@ -15,7 +15,9 @@ This helps me understand how AI research talent is distributed across different 
 
 Story #2:
 
-[ADD USER STORY HERE]
+The perspective it serves is to show a government policy analyst whether countries that train the most AI researchers also kept the largest share, and along with it how many graduates from each country sends abroad, so that I can tell whether a low retention rate is a big loss of people or only a small-base effect before deciding where to focus retention policy.
+
+By looking at the ‘Size vs retention’ visualisation, it can be seen that China trained the most researchers (5,903) and managed retained 68.7% of them, meanwhile Australia retained 47.5% from 59 researchers. When bubble area tries to show graduates now working elsewhere, China has by far the largest bubble (1,847 working abroad) even though its rate is above Australia’s, while India’s possess a much lower rate (10.0%) rests on 370 graduates working somewhere else. Within the sample, training more researchers does not have any impact on keeping more of researchers. This is reflected by USA who retained 88.7% of 1,369, while China only retained 68.7% of 5,903. In conclusion, a low rate on a small base, such as Australia’s, and a moderate rate on a large base, such as China’s, are two different retention problems that need to be followed-up each on its own respective.
 
 Story #3:
 
