@@ -2,7 +2,7 @@
 
 *Do countries that train AI researchers retain them, or does talent concentrate in a few destination countries?*
 
-Persona/Target Audience: a government policy analyst.
+Persona/Target Audience: **A government policy analyst** who wants to understand where AI researchers are trained, where they work, and which countries retain or attract researchers. The app helps the analyst compare these patterns and identify areas that may need further investigation when developing education and talent policies.
 
 
 ## User Stories
