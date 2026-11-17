@@ -13,7 +13,7 @@ Remove these instructions before submitting.
 - Verification: The resulting code was tested locally for functionality. The totals for imported talent and homegrown talent were verified one by one. This is to make sure that the code was able to read the data correctly as the data reading step could sometimes fail.
 - Outcome: The totals were read correctly and the code was subsequently used with some modifications on axis titles and colour schemes.
 
-- Artefact:
+- Artefact: Bubble Chart
 - Group Member: Kiemas Zaidan
 - AI Tool: Claude
 - AI Question/Instruction: Checking for colour consistency on the previously made code to apply on this dashboard.
