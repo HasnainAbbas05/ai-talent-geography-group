@@ -9,7 +9,9 @@ Persona/Target Audience: a government policy analyst.
 
 Story #1:
 
-[ADD USER STORY HERE]
+As a government policy analyst, I want to compare where AI researchers completed their undergraduate education with where they currently work, so that I can understand which countries train more researchers than they employ and which countries attract researchers trained elsewhere.
+Looking at the 'Train vs Work' visualisation, I can see that the USA has the largest positive difference, with 2,145 more researchers working there than those who completed their undergraduate education there. On the other hand, China has the largest negative difference, with 1,729 fewer researchers working there compared to the number it trained. The visualisation allows me to switch between percentages and actual researcher counts, compare training and employment side by side, and focus on smaller countries such as Australia and Singapore.
+This helps me understand how AI research talent is distributed across different countries. It also shows which countries may need to focus more on retaining their researchers and which countries could benefit from attracting talent from overseas.
 
 Story #2:
 
