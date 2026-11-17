@@ -2,14 +2,16 @@
 
 *Do countries that train AI researchers retain them, or does talent concentrate in a few destination countries?*
 
-Persona/Target Audience: a government policy analyst.
+Persona/Target Audience: **A government policy analyst** who wants to understand where AI researchers are trained, where they work, and which countries retain or attract researchers. The app helps the analyst compare these patterns and identify areas that may need further investigation when developing education and talent policies.
 
 
 ## User Stories
 
 Story #1:
 
-[ADD USER STORY HERE]
+As a government policy analyst, I want to compare where AI researchers completed their undergraduate education with where they currently work, so that I can understand which countries train more researchers than they employ and which countries attract researchers trained elsewhere.
+Looking at the 'Train vs Work' visualisation, I can see that the USA has the largest positive difference, with 2,145 more researchers working there than those who completed their undergraduate education there. On the other hand, China has the largest negative difference, with 1,729 fewer researchers working there compared to the number it trained. The visualisation allows me to switch between percentages and actual researcher counts, compare training and employment side by side, and focus on smaller countries such as Australia and Singapore.
+This helps me understand how AI research talent is distributed across different countries. It also shows which countries may need to focus more on retaining their researchers and which countries could benefit from attracting talent from overseas.
 
 Story #2:
 
