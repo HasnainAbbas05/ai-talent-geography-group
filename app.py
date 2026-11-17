@@ -110,7 +110,7 @@ st.caption(
 )
 
 tab_over, tab_ret, tab_net, tab_dest, tab_path, tab_wfcomp, tab_about = st.tabs(
-    ["1 · Train vs work", "2 · Retention", "3 · Attract & net flow", "4 · Where they work", "5 · Career paths", "6 · Workforce Composition", "Data and limits"]
+    ["1 · Train vs work", "2 · Retention", "3 · Attract & net flow", "4 · Where they work", "5 · Career paths", "6 · Workforce Composition", "7 · Size vs retention", "Data and limits"]
 )
 
 # ---------------------------------------------------------------- 1 train vs work
@@ -592,7 +592,7 @@ with tab_path:
         st.dataframe(p[["u", "g", "w", "n"]].rename(columns={"u": "Undergraduate", "g": "Graduate", "w": "Work 2026", "n": "Researchers"}),
                      hide_index=True, width="stretch")
 
-# ---------------------------------------------------------------- 5 Workforce Composition
+# ---------------------------------------------------------------- 6 Workforce Composition
 with tab_wfcomp:
     st.subheader("AI Workforce Composition")
     st.markdown("Homegrown talent vs Imported talent making up the local workforce.")
@@ -616,6 +616,43 @@ with tab_wfcomp:
     fig_comp2.update_layout(barmode='stack', legend_title_text='Talent Source', 
 		xaxis_title='Country or Region', yaxis_title='No. of Researchers')
     st.plotly_chart(fig_comp2, width="stretch")
+
+# -kiemas-------------------------------------------------------------- 7 size vs retention (bubble)
+with tab_bubble:
+    st.subheader("Does size matter? Cohort size vs retention")
+    st.markdown("Each bubble represents a country.  \nLeft to right: researchers trained (log scale).  \nUp: share of them still working there in 2026.  \nBubble area: see the selector below.")
+    size_by = st.radio("Bubble area shows", ["Graduates now working elsewhere", "Workforce size in 2026"], horizontal=True, key="bub_size")
+    hide_small = st.checkbox(f"Hide countries with fewer than {SMALL_N} undergraduates", key="bub_hide_small")
+    b = countries.copy()
+    if hide_small:
+        b = b[b.trained >= SMALL_N]
+    if b.empty:
+        st.info("No countries match this filter.")
+    else:
+        col = "left" if size_by.startswith("Grad") else "working"
+        sizeref = 2.0 * b[col].max() / (55 ** 2)
+        fig = go.Figure()
+        for sub, name, colour in [
+            (b[b.trained >= SMALL_N], f"n ≥ {SMALL_N} undergraduates", BLUE),
+            (b[b.trained < SMALL_N], f"n < {SMALL_N} (interpret with care)", NEUTRAL)]:
+            if sub.empty:
+                continue
+            fig.add_scatter(
+                x=sub.trained, y=sub.ret, mode="markers+text", name=name,
+                text=[f"{g} {r:.0f}%" for g, r in zip(sub.geo, sub.ret)],
+                textposition="top center",
+                marker=dict(size=sub[col], sizemode="area", sizeref=sizeref, sizemin=6,
+                            color=colour, opacity=0.75,
+                            line=dict(width=2, color="rgba(255,255,255,0.9)")),
+                customdata=sub[["retained", "left", "working"]],
+                hovertemplate="%{text}<br>Trained %{x:,}; stayed %{customdata[0]:,}; left %{customdata[1]:,}; working %{customdata[2]:,}<extra></extra>")
+        fig.update_layout(title="Training scale against retention, by country",
+            xaxis_title="Undergraduates trained (researchers, log scale)",
+            yaxis_title="Retention (% of graduates working in the same country)",
+            yaxis_range=[0, 105])
+        fig.update_xaxes(type="log")
+        st.plotly_chart(style(fig, 480), width="stretch")
+        st.caption(f"Bubble area = {size_by.lower()} (researchers). NeurIPS 2025 cohort, n={COHORT:,}, workplaces 2026. Grouped regions excluded."
  
 # ---------------------------------------------------------------- about
 with tab_about:
