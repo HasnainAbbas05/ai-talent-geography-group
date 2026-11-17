@@ -109,8 +109,8 @@ st.caption(
     "\"Trained\" = country of undergraduate institution. \"Working\" = employer country in 2026."
 )
 
-tab_over, tab_ret, tab_net, tab_dest, tab_path, tab_wfcomp, tab_about = st.tabs(
-    ["1 · Train vs work", "2 · Retention", "3 · Attract & net flow", "4 · Where they work", "5 · Career paths", "6 · Workforce Composition", "7 · Size vs retention", "Data and limits"]
+tab_over, tab_bubble, tab_net, tab_dest, tab_path, tab_wfcomp, tab_about = st.tabs(
+    ["1 · Train vs work", "2 · Size vs retention", "3 · Attract & net flow", "4 · Where they work", "5 · Career paths", "6 · Workforce Composition", "Data and limits"]
 )
 
 # ---------------------------------------------------------------- 1 train vs work
@@ -376,44 +376,42 @@ with tab_over:
         "for detailed verification, see **Tab 6** and **Data and limits**."
     )
 
-# ---------------------------------------------------------------- 2 retention
-with tab_ret:
-    st.subheader("Retention: of those trained here, how many work here?")
-    st.markdown(
-        "Retention = researchers whose undergraduate and 2026 employer geography match, divided by everyone "
-        "who did their undergraduate degree there. The number of researchers behind each bar is printed beside it."
-    )
-    r = countries.sort_values("ret")
-    big, small = r[r.trained >= SMALL_N], r[r.trained < SMALL_N]
-    fig = go.Figure()
-    for sub, name, colour in [(big, f"n ≥ {SMALL_N} undergraduates", BLUE), (small, f"n < {SMALL_N} (interpret with care)", NEUTRAL)]:
-        fig.add_bar(
-            y=sub.geo, x=sub.ret, orientation="h", name=name, marker_color=colour,
-            text=[f"{v:.1f}%  (n={n:,})" for v, n in zip(sub.ret, sub.trained)], textposition="outside",
-            customdata=sub[["trained", "retained", "left"]],
-            hovertemplate="%{y}<br>Retention %{x:.1f}%<br>Trained %{customdata[0]:,}; stayed %{customdata[1]:,}; "
-                          "work elsewhere %{customdata[2]:,}<extra></extra>",
-        )
-    fig.add_vline(x=overall_ret, line_dash="dot", line_color="rgba(128,128,128,0.8)",
-                  annotation_text=f"Whole sample {overall_ret:.0f}%", annotation_position="top")
-    fig.update_layout(bargap=0.35, xaxis_title="Retention (%)", xaxis_range=[0, 105])
-    fig.update_yaxes(categoryorder="array", categoryarray=r.geo.tolist())  # keep one sort across both colour groups
-    st.plotly_chart(style(fig, 440), width="stretch")
-
-    gr = regions.set_index("geo")
-    c1, c2 = st.columns(2)
-    c1.metric(f"Europe (grouped region), n={int(gr.loc['Europe','trained']):,}", pct(gr.loc["Europe", "ret"]))
-    c2.metric(f"Other (grouped region), n={int(gr.loc['Other','trained']):,}", pct(gr.loc["Other", "ret"]))
-    st.caption(
-        "Europe and Other are groups of many countries, so a match within the group does not mean the researcher stayed in "
-        "the same country. They are kept out of the country ranking. The UK is separate from Europe; Hong Kong is counted with China."
-    )
-    st.warning(
-        f"**Scale matters.** China's retention ({pct(df[df.geo=='China'].ret.iloc[0],0)}) is lower than the USA's, "
-        f"but China trained {int(df[df.geo=='China'].trained.iloc[0]):,} researchers, the most by far, so it also has the "
-        f"largest absolute number working abroad ({int(df[df.geo=='China'].left.iloc[0]):,}). "
-        f"A high rate on a small base ({int(usa.trained):,} for the USA) is a different policy fact."
-    )
+# -kiemas--------------------------------------------------------- 2 Size vs retention
+with tab_bubble:
+    st.subheader("Does size matter? Cohort size vs retention")
+    st.markdown("Each bubble represents a country.  \nLeft to right: researchers trained (log scale).  \nUp: share of them still working there in 2026.  \nBubble area: see the selector below.")
+    size_by = st.radio("Bubble area shows", ["Graduates now working elsewhere", "Workforce size in 2026"], horizontal=True, key="bub_size")
+    hide_small = st.checkbox(f"Hide countries with fewer than {SMALL_N} undergraduates", key="bub_hide_small")
+    b = countries.copy()
+    if hide_small:
+        b = b[b.trained >= SMALL_N]
+    if b.empty:
+        st.info("No countries match this filter.")
+    else:
+        col = "left" if size_by.startswith("Grad") else "working"
+        sizeref = 2.0 * b[col].max() / (55 ** 2)
+        fig = go.Figure()
+        for sub, name, colour in [
+            (b[b.trained >= SMALL_N], f"n ≥ {SMALL_N} undergraduates", BLUE),
+            (b[b.trained < SMALL_N], f"n < {SMALL_N} (interpret with care)", NEUTRAL)]:
+            if sub.empty:
+                continue
+            fig.add_scatter(
+                x=sub.trained, y=sub.ret, mode="markers+text", name=name,
+                text=[f"{g} {r:.0f}%" for g, r in zip(sub.geo, sub.ret)],
+                textposition="top center",
+                marker=dict(size=sub[col], sizemode="area", sizeref=sizeref, sizemin=6,
+                            color=colour, opacity=0.75,
+                            line=dict(width=2, color="rgba(255,255,255,0.9)")),
+                customdata=sub[["retained", "left", "working"]],
+                hovertemplate="%{text}<br>Trained %{x:,}; stayed %{customdata[0]:,}; left %{customdata[1]:,}; working %{customdata[2]:,}<extra></extra>")
+        fig.update_layout(title="Training scale against retention, by country",
+            xaxis_title="Undergraduates trained (researchers, log scale)",
+            yaxis_title="Retention (% of graduates working in the same country)",
+            yaxis_range=[0, 105])
+        fig.update_xaxes(type="log")
+        st.plotly_chart(style(fig, 480), width="stretch")
+        st.caption(f"Bubble area = {size_by.lower()} (researchers). NeurIPS 2025 cohort, n={COHORT:,}, workplaces 2026. Grouped regions excluded.")
 
 # ---------------------------------------------------------------- 3 attract & net
 with tab_net:
@@ -616,43 +614,6 @@ with tab_wfcomp:
     fig_comp2.update_layout(barmode='stack', legend_title_text='Talent Source', 
 		xaxis_title='Country or Region', yaxis_title='No. of Researchers')
     st.plotly_chart(fig_comp2, width="stretch")
-
-# -kiemas-------------------------------------------------------------- 7 size vs retention (bubble)
-with tab_bubble:
-    st.subheader("Does size matter? Cohort size vs retention")
-    st.markdown("Each bubble represents a country.  \nLeft to right: researchers trained (log scale).  \nUp: share of them still working there in 2026.  \nBubble area: see the selector below.")
-    size_by = st.radio("Bubble area shows", ["Graduates now working elsewhere", "Workforce size in 2026"], horizontal=True, key="bub_size")
-    hide_small = st.checkbox(f"Hide countries with fewer than {SMALL_N} undergraduates", key="bub_hide_small")
-    b = countries.copy()
-    if hide_small:
-        b = b[b.trained >= SMALL_N]
-    if b.empty:
-        st.info("No countries match this filter.")
-    else:
-        col = "left" if size_by.startswith("Grad") else "working"
-        sizeref = 2.0 * b[col].max() / (55 ** 2)
-        fig = go.Figure()
-        for sub, name, colour in [
-            (b[b.trained >= SMALL_N], f"n ≥ {SMALL_N} undergraduates", BLUE),
-            (b[b.trained < SMALL_N], f"n < {SMALL_N} (interpret with care)", NEUTRAL)]:
-            if sub.empty:
-                continue
-            fig.add_scatter(
-                x=sub.trained, y=sub.ret, mode="markers+text", name=name,
-                text=[f"{g} {r:.0f}%" for g, r in zip(sub.geo, sub.ret)],
-                textposition="top center",
-                marker=dict(size=sub[col], sizemode="area", sizeref=sizeref, sizemin=6,
-                            color=colour, opacity=0.75,
-                            line=dict(width=2, color="rgba(255,255,255,0.9)")),
-                customdata=sub[["retained", "left", "working"]],
-                hovertemplate="%{text}<br>Trained %{x:,}; stayed %{customdata[0]:,}; left %{customdata[1]:,}; working %{customdata[2]:,}<extra></extra>")
-        fig.update_layout(title="Training scale against retention, by country",
-            xaxis_title="Undergraduates trained (researchers, log scale)",
-            yaxis_title="Retention (% of graduates working in the same country)",
-            yaxis_range=[0, 105])
-        fig.update_xaxes(type="log")
-        st.plotly_chart(style(fig, 480), width="stretch")
-        st.caption(f"Bubble area = {size_by.lower()} (researchers). NeurIPS 2025 cohort, n={COHORT:,}, workplaces 2026. Grouped regions excluded."
  
 # ---------------------------------------------------------------- about
 with tab_about:
