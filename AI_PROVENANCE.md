@@ -14,12 +14,12 @@ Remove these instructions before submitting.
 - Outcome: The totals were read correctly and the code was subsequently used with some modifications on axis titles and colour schemes.
 
 - Artefact:
-- Group Member:
-- AI Tool:
-- AI Question/Instruction:
-- AI Response:
-- Verification:
-- Outcome:
+- Group Member: Kiemas Zaidan
+- AI Tool: Claude
+- AI Question/Instruction: Checking for colour consistency on the previously made code to apply on this dashboard.
+- AI Response: looks good.
+- Verification: tested locally, works fine.
+- Outcome: the colour scheme checks out.
  
 - Artefact:
 - Group Member:
