@@ -23,13 +23,13 @@ Remove these instructions before submitting.
 - Outcome: the colour scheme checks out.
 ---
  
-- Artefact:
-- Group Member:
-- AI Tool:
-- AI Question/Instruction:
-- AI Response:
-- Verification:
-- Outcome:
+- Artefact: Diverging and Grouped Bar Charts
+- Group Member: Hasnain Abbas
+- AI Tool: ChatGPT
+- AI Question/Instruction: Enhance the existing Train vs Work visualisation in Streamlit by country highlighting and filters.
+- AI Response: Python code for a enhanced diverging bar chart and group bar chart showing net differences through new color filters and highlighting.
+- Verification: Both charts were tested locally in Streamlit to check their functionality and whether switching between them worked correctly. The USA (+2,145) and China (−1,729) net differences were also checked against the dataset to confirm the calculations.
+- Outcome: Both visualisations displayed correctly, and the interactive features worked as expected. The enhanced code was used in the final Train vs Work tab.
 ---
  
 - Artefact:
