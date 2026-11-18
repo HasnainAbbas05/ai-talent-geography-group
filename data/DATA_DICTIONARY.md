@@ -1,6 +1,6 @@
 # Data dictionary and reproducibility guide
 
-**Project:** Global AI Talent Flow — *Do countries that train AI researchers retain them, or does talent concentrate in a few destination countries?*  
+**Project:** Global AI Talent Flow: *Do countries that train AI researchers retain them, or does talent concentrate in a few destination countries?*  
 **Intended audience:** Government policy analysts comparing the training, retention and employment affiliations of AI researchers.  
 **Data package location:** `data/` in the GitHub repository.  
 **Dataset snapshot:** NeurIPS 2025 authors with complete career histories; workplaces observed in **2026**.  
