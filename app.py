@@ -104,14 +104,258 @@ m1.metric("Researchers in sample", f"{COHORT:,}")
 m2.metric(f"{' + '.join(top_train.geo)}: trained here", pct(top_train_share))
 m3.metric(f"{' + '.join(top_work.geo)}: working here", pct(top_work_share))
 m4.metric("USA workforce trained elsewhere", pct(usa.imported_share))
+
 st.caption(
-    "Sample = NeurIPS 2025 authors with complete career histories (about 40% of the conference's unique authors). "
-    "\"Trained\" = country of undergraduate institution. \"Working\" = employer country in 2026."
+    "**Data and coverage:** The dataset covers NeurIPS 2025 accepted-paper authors with complete career histories "
+    "(approximately 40% of the conference's unique authors). "
+    "'Trained' refers to the country of undergraduate education, while 'working' refers to employer affiliation in 2026. "
+    "These figures do not necessarily represent physical migration. "
+    "The data cannot establish trends or policy effects. "
+    "Australia, Singapore and Russia each have fewer than 100 undergraduate-affiliated researchers in the sample."
 )
 
-tab_over, tab_bubble, tab_net, tab_dest, tab_path, tab_wfcomp, tab_about = st.tabs(
-    ["1 · Train vs work", "2 · Size vs retention", "3 · Attract & net flow", "4 · Where they work", "5 · Career paths", "6 · Workforce Composition", "Data and limits"]
+st.caption(
+    f"**Source and last data retrieval:** [Ma & Yang, Carnegie Endowment (23 September 2026)]({CARNEGIE_URL}); "
+    "public Flourish retention and mobility charts retrieved **24 October 2026**. "
+    "Processed from `data/published_chart_data.json` using `data/build_data.mjs`. "
+    "For retention, see **Tab 2**; for destinations, see **Tab 3**; "
+    "for workforce composition, see **Tab 4**; for sources and limitations, see **Data and limits**."
 )
+
+tab_dashboard, tab_over, tab_bubble, tab_dest, tab_wfcomp, tab_about = st.tabs(
+    [
+        "Overview",
+        "1 · Train vs work",
+        "2 · Size vs retention",
+        "3 · Where they work",
+        "4 · Workforce Composition",
+        "Data and limits"
+    ]
+)
+
+# ---------------------------------------------------------------- OVERVIEW DASHBOARD
+with tab_dashboard:
+    st.subheader("Global AI Talent Flow | Overview")
+    st.caption(
+        "Four views of the same NeurIPS 2025 research sample (10,280 people; "
+        "workplaces observed in 2026). Use the numbered tabs for full-size charts and filters."
+    )
+
+    dash_col1, dash_col2 = st.columns(2, gap="medium")
+
+    with dash_col1:
+        st.markdown("#### 1. Train vs Work")
+        net_preview = countries.copy()
+        net_preview["gap_pp"] = net_preview.working_share - net_preview.trained_share
+        net_preview = net_preview.sort_values("gap_pp")
+        net_fig = go.Figure()
+        net_fig.add_bar(
+            x=net_preview.gap_pp,
+            y=net_preview.geo,
+            orientation="h",
+            marker_color=["#0072B2" if v >= 0 else "#D55E00" for v in net_preview.gap_pp],
+            text=[f"{v:+.1f} pp" for v in net_preview.gap_pp],
+            textposition="outside",
+            cliponaxis=False,
+            customdata=net_preview[["trained", "working", "net"]],
+            hovertemplate="%{y}<br>Trained: %{customdata[0]:,}<br>Working: %{customdata[1]:,}"
+                          "<br>Difference: %{customdata[2]:+,} researchers<extra></extra>",
+        )
+        net_fig.update_layout(
+            height=380, showlegend=False,
+            xaxis_title="Workplace minus training share (pp)",
+            margin=dict(l=10, r=65, t=15, b=45), font=dict(size=11),
+        )
+        net_fig.update_xaxes(zeroline=True, zerolinewidth=2, zerolinecolor="#888888",
+                             range=[-26, 27])
+        net_fig.update_yaxes(automargin=True)
+        st.plotly_chart(net_fig, width="stretch", key="dashboard_net")
+        st.caption("Positive = more workplaces than undergraduate training affiliations. Countries only.")
+
+    with dash_col2:
+        st.markdown("#### 2. Size vs Retention")
+        bubble_preview = countries.copy()
+        bubble_fig = go.Figure()
+        bubble_fig.add_scatter(
+            x=bubble_preview.trained,
+            y=bubble_preview.ret,
+            mode="markers+text",
+            text=[f"{g} {r:.0f}%" for g, r in zip(bubble_preview.geo, bubble_preview.ret)],
+            textposition="top center",
+            marker=dict(
+                size=bubble_preview.working,
+                sizemode="area",
+                sizeref=2 * bubble_preview.working.max() / (38 ** 2),
+                sizemin=7,
+                color=["#0072B2" if n >= SMALL_N else "#999999" for n in bubble_preview.trained],
+                opacity=0.8,
+            ),
+            customdata=bubble_preview[["left", "working"]],
+            hovertemplate="%{text}<br>Undergraduate-trained: %{x:,}"
+                          "<br>Working elsewhere: %{customdata[0]:,}"
+                          "<br>Workforce size: %{customdata[1]:,}<extra></extra>",
+        )
+        bubble_fig.update_layout(
+            height=380, showlegend=False,
+            xaxis_title="Undergraduate-trained researchers (log scale)",
+            yaxis_title="Retention (%)",
+            margin=dict(l=15, r=15, t=15, b=45), font=dict(size=11),
+        )
+        bubble_fig.update_xaxes(type="log")
+        bubble_fig.update_yaxes(range=[0, 110])
+        st.plotly_chart(bubble_fig, width="stretch", key="dashboard_retention")
+        st.caption("Bubble area = 2026 workforce size; grey bubbles have fewer than 100 undergraduates.")
+
+    dash_col3, dash_col4 = st.columns(2, gap="medium")
+
+    
+    with dash_col3:
+        st.markdown("#### 3. Where They Work")
+
+        dashboard_country = st.selectbox(
+            "Explore the workforce in",
+            sorted(df.geo.tolist()),
+            index=sorted(df.geo.tolist()).index("USA"),
+            key="dashboard_country",
+        )
+
+        row = df[df.geo == dashboard_country].iloc[0]
+
+        origins = (
+            paths[
+                (paths.work_country_or_region == dashboard_country)
+                & (paths.undergraduate_country_or_region != dashboard_country)
+            ]
+            .groupby("undergraduate_country_or_region")["researcher_count"]
+            .sum()
+            .sort_values(ascending=False)
+        )
+
+        unlisted = int(row.arrived) - int(origins.sum())
+
+        geo_colours = {
+            "USA": "#eb6834",
+            "China": "#6250d6",
+            "Singapore": "#1baf7a",
+            "Europe": "#eda100",
+            "India": "#e87ba4",
+            "Other": "#008300",
+            "South Korea": "#e34948",
+        }
+
+        parts = [
+            (f"Trained in {dashboard_country} too", int(row.retained), BLUE)
+        ]
+
+        parts += [
+            (f"Trained in {origin}", int(count),
+             geo_colours.get(origin, "#5b6b7f"))
+            for origin, count in origins.items()
+        ]
+
+        parts += [
+            ("Trained elsewhere, origin not published",
+             unlisted, "rgba(160,163,170,0.55)")
+        ]
+
+        parts = [part for part in parts if part[1] > 0]
+
+        fig = go.Figure(go.Pie(
+            labels=[part[0] for part in parts],
+            values=[part[1] for part in parts],
+            marker=dict(
+                colors=[part[2] for part in parts],
+                line=dict(
+                    color="rgba(255,255,255,0.9)",
+                    width=2
+                )
+            ),
+            hole=0.5,
+            sort=False,
+            direction="clockwise",
+            texttemplate="%{percent:.1%}",
+            textposition="auto",
+            insidetextorientation="horizontal",
+            hovertemplate="%{label}<br>%{value:,} researchers (%{percent})<extra></extra>",
+        ))
+
+        fig.add_annotation(
+            text=f"{int(row.working):,}<br>working in<br>{dashboard_country}",
+            x=0.5,
+            y=0.5,
+            showarrow=False,
+            font=dict(size=15),
+        )
+
+        fig.update_layout(
+            height=430,
+            margin=dict(l=10, r=10, t=10, b=10),
+            legend=dict(font=dict(size=13)),
+        )
+
+        st.plotly_chart(
+            fig,
+            width="stretch",
+            key="dashboard_destinations"
+        )
+
+        st.caption(
+            "The published career paths identify some training origins. "
+            "Unpublished origins remain grouped together."
+        )
+
+    
+    with dash_col4:
+        st.markdown("#### 4. Workforce Composition")
+
+        df_sorted_dest = summary.sort_values(
+            by="work_destination_count",
+            ascending=False
+        )
+
+        fig_comp2 = go.Figure()
+
+        fig_comp2.add_trace(go.Bar(
+            x=df_sorted_dest["country_or_region"],
+            y=df_sorted_dest["same_origin_work_group_count"],
+            name="Homegrown Talent",
+            marker_color=BLUE
+        ))
+
+        fig_comp2.add_trace(go.Bar(
+            x=df_sorted_dest["country_or_region"],
+            y=df_sorted_dest["educated_elsewhere_working_here_count"],
+            name="Imported Talent",
+            marker_color=ORANGE
+        ))
+
+        fig_comp2.update_layout(
+            barmode="stack",
+            legend_title_text="Talent Source",
+            xaxis_title="Country or Region",
+            yaxis_title="No. of Researchers",
+            height=430,
+            margin=dict(l=40, r=10, t=40, b=90),
+            xaxis_tickangle=-45
+        )
+
+        st.plotly_chart(
+            fig_comp2,
+            width="stretch",
+            key="dashboard_workforce"
+        )
+
+        st.caption(
+            "Homegrown = undergraduate education and workplace "
+            "in the same geography. Imported = undergraduate "
+            "education in a different geography."
+        )
+
+    st.info(
+        "**How to read this overview:** Compare the four perspectives, then open Tabs 1–4 "
+        "for the detailed charts and their controls. These patterns describe the observed sample; "
+        "they do not prove individual migration journeys or policy impacts."
+    )
 
 # ---------------------------------------------------------------- 1 train vs work
 # This block is self-contained: other team members' tabs and data are unchanged.
@@ -360,21 +604,6 @@ with tab_over:
             key="tab1_download",
         )
 
-    st.caption(
-        "**Data:** NeurIPS 2025 accepted-paper authors with complete career histories "
-        f"(n={COHORT:,}, approximately 40% of unique authors). "
-        "Undergraduate training refers to the institution's country, not nationality or an AI-specific qualification. "
-        "Workplace geography refers to employer affiliation observed in 2026, not necessarily physical residence. "
-        "A single cohort cannot demonstrate trends or policy effects. "
-        "Australia, Singapore and Russia have fewer than 100 undergraduate-affiliated researchers each."
-    )
-    st.caption(
-        f"**Source and last data retrieval:** [Ma & Yang, Carnegie Endowment (23 September 2026)]({CARNEGIE_URL}); "
-        "public Flourish retention and mobility charts retrieved **24 October 2026**. "
-        "Processed from `data/published_chart_data.json` using `data/build_data.mjs`. "
-        "For retention, see **Tab 2**; for arrivals/departures, see **Tab 3**; "
-        "for detailed verification, see **Tab 6** and **Data and limits**."
-    )
 
 # -kiemas--------------------------------------------------------- 2 Size vs retention
 with tab_bubble:
@@ -413,60 +642,9 @@ with tab_bubble:
         st.plotly_chart(style(fig, 480), width="stretch")
         st.caption(f"Bubble area = {size_by.lower()} (researchers). NeurIPS 2025 cohort, n={COHORT:,}, workplaces 2026. Grouped regions excluded.")
 
-# ---------------------------------------------------------------- 3 attract & net
-with tab_net:
-    st.subheader("Attraction: who gains and who loses researchers?")
-    view = st.radio("View", ["Net gain or loss", "Left vs arrived"], horizontal=True)
-    n = df.sort_values("net")
-    if view == "Net gain or loss":
-        fig = go.Figure()
-        fig.add_bar(
-            y=n.label, x=n.net, orientation="h", showlegend=False,
-            marker_color=[BLUE if v >= 0 else ORANGE for v in n.net],
-            text=[f"{v:+,}" for v in n.net], textposition="outside",
-            customdata=n[["arrived", "left"]],
-            hovertemplate="%{y}<br>Net %{x:+,}<br>Arrived %{customdata[0]:,} − left %{customdata[1]:,}<extra></extra>",
-        )
-        fig.update_layout(bargap=0.35, xaxis_title="Net difference (arrived − left), researchers")
-        fig.add_vline(x=0, line_color="rgba(128,128,128,0.8)")
-        st.caption("Blue = hosts more researchers than it trained; orange = trained more than it hosts.")
-        st.plotly_chart(style(fig, 480), width="stretch")
-    else:
-        fig = go.Figure()
-        fig.add_bar(y=n.label, x=n.left, orientation="h", name="Left (trained here, work elsewhere)", marker_color=ORANGE,
-                    hovertemplate="%{y}<br>Left: %{x:,}<extra></extra>")
-        fig.add_bar(y=n.label, x=n.arrived, orientation="h", name="Arrived (trained elsewhere, work here)", marker_color=BLUE,
-                    hovertemplate="%{y}<br>Arrived: %{x:,}<extra></extra>")
-        fig.update_layout(barmode="group", bargap=0.35, bargroupgap=0.08, xaxis_title="Researchers")
-        st.plotly_chart(style(fig, 520), width="stretch")
 
-    st.markdown("#### Retain vs attract")
-    st.markdown(
-        "Horizontal: how many of its own graduates a country keeps. Vertical: how much of its research workforce "
-        "was trained elsewhere. Countries only; grouped regions excluded."
-    )
-    pos = {"Australia": "top center", "UK": "bottom center", "Canada": "middle left", "Singapore": "top center"}
-    fig = go.Figure()
-    for sub, name, colour in [(countries[countries.trained >= SMALL_N], f"n ≥ {SMALL_N} undergraduates", BLUE),
-                              (countries[countries.trained < SMALL_N], f"n < {SMALL_N} (interpret with care)", NEUTRAL)]:
-        fig.add_scatter(
-            x=sub.ret, y=sub.imported_share, mode="markers+text", name=name, text=sub.geo,
-            textposition=[pos.get(g, "middle right") for g in sub.geo],
-            marker=dict(size=12, color=colour, line=dict(width=2, color="rgba(255,255,255,0.9)")),
-            customdata=sub[["trained", "working", "arrived"]],
-            hovertemplate="%{text}<br>Retention %{x:.1f}%<br>Workforce trained elsewhere %{y:.1f}%<br>"
-                          "Trained %{customdata[0]:,}; working %{customdata[1]:,}; arrived %{customdata[2]:,}<extra></extra>",
-        )
-    fig.update_layout(xaxis_title="Retention of own graduates (%)", yaxis_title="Workforce trained elsewhere (%)",
-                      xaxis_range=[0, 100], yaxis_range=[-5, 105])
-    fig.update_yaxes(showgrid=True, gridcolor="rgba(128,128,128,0.18)", zeroline=False)
-    st.plotly_chart(style(fig, 460), width="stretch")
-    st.caption(
-        "Only the USA is high on both axes. Singapore, Australia, the UK and Canada draw most of their researchers from "
-        "abroad but keep fewer than half of their own graduates, and each has a small base (≤ 216 undergraduates in this sample)."
-    )
 
-# ---------------------------------------------------------------- 4 where do they work (donut)
+# ---------------------------------------------------------------- 3 where do they work (donut)
 p = paths.rename(columns={"undergraduate_country_or_region": "u", "graduate_country_or_region": "g",
                           "work_country_or_region": "w", "researcher_count": "n"})
 # Colour follows the geography everywhere it appears (fixed, never re-assigned by rank).
@@ -538,59 +716,8 @@ with tab_dest:
         st.dataframe(pd.DataFrame(parts, columns=["Group", "Researchers", "colour"]).drop(columns="colour"),
                      hide_index=True, width="stretch")
 
-# ---------------------------------------------------------------- 5 career paths (lollipop)
-with tab_path:
-    st.subheader("Selected career paths: undergraduate → graduate → work")
-    covered = int(p.n.sum())
-    st.warning(
-        f"These are the **{len(p)} paths the publisher charted**, covering {covered:,} of {COHORT:,} researchers "
-        f"({covered / COHORT * 100:.1f}%). The other {COHORT - covered:,} are not shown. This is not the full flow, and "
-        "gaps are not zeros."
-    )
-    c1, c2, c3 = st.columns([2, 2, 1.4])
-    u_sel = c1.multiselect("Undergraduate in", sorted(p.u.unique()), placeholder="All")
-    w_sel = c2.multiselect("Working in (2026)", sorted(p.w.unique()), placeholder="All")
-    moved_only = c3.checkbox("Only those who moved", help="Work geography differs from undergraduate geography.")
-    q = p.copy()
-    if u_sel: q = q[q.u.isin(u_sel)]
-    if w_sel: q = q[q.w.isin(w_sel)]
-    if moved_only: q = q[q.u != q.w]
-    q = q.assign(moved=q.u != q.w, label=q.u + " → " + q.g + " → " + q.w).sort_values("n")
-    if q.empty:
-        st.info("No published path matches those filters.")
-    else:
-        fig = go.Figure()
-        for moved, name, colour in [(False, "Works where they did their undergraduate degree", BLUE),
-                                    (True, "Works in a different geography", ORANGE)]:
-            sub = q[q.moved == moved]
-            if sub.empty:
-                continue
-            xs, ys = [], []
-            for lab, n in zip(sub.label, sub.n):          # stems: a line from 0 to the count
-                xs += [0, n, None]; ys += [lab, lab, None]
-            fig.add_scatter(x=xs, y=ys, mode="lines", line=dict(color=colour, width=3), hoverinfo="skip", showlegend=False)
-            fig.add_scatter(
-                x=sub.n, y=sub.label, mode="markers+text", name=name, text=[f"{v:,}" for v in sub.n], textposition="middle right",
-                marker=dict(size=13, color=colour, line=dict(width=2, color="rgba(255,255,255,0.9)")),
-                hovertemplate="%{y}<br>%{x:,} researchers<extra></extra>",
-            )
-        fig.update_layout(xaxis_title="Researchers", xaxis_range=[0, q.n.max() * 1.12])
-        fig.update_yaxes(categoryorder="array", categoryarray=q.label.tolist())
-        st.plotly_chart(style(fig, max(260, 34 * len(q) + 110)), width="stretch")
-        st.caption("Read each row left to right as: undergraduate country → graduate-school country → 2026 workplace.")
-    cu = p[(p.u == "China") & (p.g == "USA")]
-    if len(cu):
-        tot = int(cu.n.sum()); to_us = int(cu[cu.w == "USA"].n.sum()); to_cn = int(cu[cu.w == "China"].n.sum())
-        st.caption(
-            f"Of {tot:,} China-undergraduate, US-graduate researchers in these paths, {to_us:,} ({to_us / tot * 100:.1f}%) "
-            f"work in the USA and {to_cn:,} ({to_cn / tot * 100:.1f}%) in China. Other China → USA → elsewhere paths, if any, "
-            "were not published."
-        )
-    with st.expander("Table view"):
-        st.dataframe(p[["u", "g", "w", "n"]].rename(columns={"u": "Undergraduate", "g": "Graduate", "w": "Work 2026", "n": "Researchers"}),
-                     hide_index=True, width="stretch")
 
-# ---------------------------------------------------------------- 6 Workforce Composition
+# ---------------------------------------------------------------- 4 Workforce Composition
 with tab_wfcomp:
     st.subheader("AI Workforce Composition")
     st.markdown("Homegrown talent vs Imported talent making up the local workforce.")
