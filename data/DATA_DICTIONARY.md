@@ -13,9 +13,9 @@ Ma, D., & Yang, B. (2026, September 23). *Who's ahead in the global AI talent ra
 
 - [Original study and methodology](https://carnegieendowment.org/features/whos-ahead-in-the-global-ai-talent-race)
 - [Published PDF report](https://assets.carnegieendowment.org/files/Ma_AI%20Talent-2026.pdf)
-- [Mobility counts — Flourish chart 30265299](https://public.flourish.studio/visualisation/30265299/embed?1355501)
-- [Retention and undergraduate training — Flourish chart 30285922](https://public.flourish.studio/visualisation/30285922/embed?1355501)
-- [Selected undergraduate → graduate → workplace pathways — Flourish chart 30286797](https://public.flourish.studio/visualisation/30286797/embed?1355501)
+- [Mobility counts - Flourish chart 30265299](https://public.flourish.studio/visualisation/30265299/embed?1355501)
+- [Retention and undergraduate training - Flourish chart 30285922](https://public.flourish.studio/visualisation/30285922/embed?1355501)
+- [Selected undergraduate → graduate → workplace pathways - Flourish chart 30286797](https://public.flourish.studio/visualisation/30286797/embed?1355501)
 
 **What was collected.** The three public Flourish charts embedded in the Carnegie study contain aggregate figures. Their published numerical tables were read from the public chart data on **24 October 2026** and preserved in `published_chart_data.json`. No values were estimated by measuring chart pixels. The source JSON is a *saved copy of public chart data*, **not** Carnegie's individual-level research database or an official downloadable Carnegie CSV. The four CSV files in this package are processed extracts of that saved snapshot.
 
@@ -32,12 +32,12 @@ Ma, D., & Yang, B. (2026, September 23). *Who's ahead in the global AI talent ra
 | `published_mobility.csv` | 11 | Processed CSV | Cleans the mobility chart's leaving and arriving counts; computes net difference. |
 | `selected_career_paths.csv` | 18 | Processed CSV | Copies **only** the 18 career paths selected for publication. |
 | `ai_talent_country_summary.csv` | 11 | Processed CSV | Joins retention and mobility by geography and derives retained, working and net totals. |
-| `build_data.mjs` | — | Transformation script, **not a dataset** | Rebuilds all four CSVs from `published_chart_data.json` and runs assertions. |
-| `README.md` | — | Documentation | This data dictionary and reproducibility guide. |
+| `build_data.mjs` | - | Transformation script, **not a dataset** | Rebuilds all four CSVs from `published_chart_data.json` and runs assertions. |
+| `README.md` | - | Documentation | This data dictionary and reproducibility guide. |
 
 **Common conventions:** A *count* is a number of researchers (people) in the observed subset. A *percentage* uses the **0–100 scale**, not a 0–1 fraction; “pp” means percentage points. `country_or_region` is the publisher's classification: **Europe** and **Other** are grouped regions rather than individual countries. The UK is separate from Europe; Hong Kong is counted with China. URLs are source references, not measured variables.
 
-## 2. Dataset dictionary — `ai_talent_country_summary.csv`
+## 2. Dataset dictionary - `ai_talent_country_summary.csv`
 
 - **Role:** Main application dataset for comparing undergraduate education and 2026 work locations, retention and workforce composition.
 - **Source / URLs:** Derived from [retention chart 30285922](https://public.flourish.studio/visualisation/30285922/embed?1355501) and [mobility chart 30265299](https://public.flourish.studio/visualisation/30265299/embed?1355501); original publisher is Carnegie Endowment (study linked in Section 1).
@@ -63,7 +63,7 @@ Ma, D., & Yang, B. (2026, September 23). *Who's ahead in the global AI talent ra
 | `retention_source_url` | URL text; no units | The public retention source chart. |
 | `mobility_source_url` | URL text; no units | The public mobility source chart. |
 
-## 3. Dataset dictionary — `published_retention.csv`
+## 3. Dataset dictionary - `published_retention.csv`
 
 - **Role:** Source-aligned retention table used to audit undergraduate counts and retention percentages.
 - **Source / URL:** [Carnegie's public retention Flourish chart 30285922](https://public.flourish.studio/visualisation/30285922/embed?1355501).
@@ -79,7 +79,7 @@ Ma, D., & Yang, B. (2026, September 23). *Who's ahead in the global AI talent ra
 | `published_retention_percent` | Number; % (0–100), 1 decimal | Publisher's rounded percentage of those graduates whose workplace is in the same published geography in 2026. |
 | `source_url` | URL text; no units | Link to the public retention Flourish chart. |
 
-## 4. Dataset dictionary — `published_mobility.csv`
+## 4. Dataset dictionary - `published_mobility.csv`
 
 - **Role:** Source-aligned leaving, arriving and net-difference counts.
 - **Source / URL:** [Carnegie's public mobility Flourish chart 30265299](https://public.flourish.studio/visualisation/30265299/embed?1355501).
@@ -96,7 +96,7 @@ Ma, D., & Yang, B. (2026, September 23). *Who's ahead in the global AI talent ra
 | `net_difference_count` | Signed integer; researchers | **arrived_count − left_count**; a cross-geography affiliation comparison, not verified migration. |
 | `source_url` | URL text; no units | Link to the public mobility Flourish chart. |
 
-## 5. Dataset dictionary — `selected_career_paths.csv`
+## 5. Dataset dictionary - `selected_career_paths.csv`
 
 - **Role:** A *selected*, incomplete set of published undergraduate → graduate → work pathways used by the Where They Work visualisation.
 - **Source / URL:** [Carnegie's public selected-pathways Flourish chart 30286797](https://public.flourish.studio/visualisation/30286797/embed?1355501).
@@ -118,7 +118,7 @@ Ma, D., & Yang, B. (2026, September 23). *Who's ahead in the global AI talent ra
 
 **Coverage caution:** These 18 rows sum to **8,214** researchers (**79.9%** of the 10,280-person complete-history sample); the remaining **2,066** researchers have no specified three-stage pathway in this *published selection*. An unlisted flow is **unknown, not zero**. The dashboard's grey “origin not published” category is calculated as the published aggregate arrival count minus the origins identifiable from selected published pathways; it is not a guessed country allocation.
 
-## 6. Dataset dictionary — `published_chart_data.json` (preserved source sample)
+## 6. Dataset dictionary - `published_chart_data.json` (preserved source sample)
 
 - **Role:** Raw-in-package source sample from which all four CSVs can be regenerated. It is **not** researcher-level data.
 - **Source / URLs:** The three public Flourish chart URLs in Section 1, associated with the Carnegie study.
@@ -150,9 +150,9 @@ Ma, D., & Yang, B. (2026, September 23). *Who's ahead in the global AI talent ra
 
 | Chart ID and role | Source columns (in order) | Units / treatment |
 |---|---|---|
-| `30265299` — mobility, 11 rows | `Country/region`; `Left`; `Arrived`; `Net`; `Net Positive`; `Net Negative` | Geography text; researchers; researchers; signed count displayed as text; positive count or null (display); negative count or null (display). The script uses `Left` and `Arrived` to calculate net numerically. |
-| `30285922` — retention, 11 rows | `Country/region`; `Own graduates`; `Retention`; `Retention Bar` | Geography text; researcher count formatted as text with commas; percentage formatted as text; numeric percentage on the 0–100 scale. Script uses `Own graduates` and numeric `Retention Bar`. |
-| `30286797` — selected career paths, 18 rows | `Undergraduate`; `Graduate`; `Works in`; `People`; `People Bar` | Three categorical geography/stage labels; researcher count; redundant numeric count for chart display. Script uses the first four fields. |
+| `30265299` - mobility, 11 rows | `Country/region`; `Left`; `Arrived`; `Net`; `Net Positive`; `Net Negative` | Geography text; researchers; researchers; signed count displayed as text; positive count or null (display); negative count or null (display). The script uses `Left` and `Arrived` to calculate net numerically. |
+| `30285922` - retention, 11 rows | `Country/region`; `Own graduates`; `Retention`; `Retention Bar` | Geography text; researcher count formatted as text with commas; percentage formatted as text; numeric percentage on the 0–100 scale. Script uses `Own graduates` and numeric `Retention Bar`. |
+| `30286797` - selected career paths, 18 rows | `Undergraduate`; `Graduate`; `Works in`; `People`; `People Bar` | Three categorical geography/stage labels; researcher count; redundant numeric count for chart display. Script uses the first four fields. |
 
 ## 7. Reproduce the processed CSV files
 
