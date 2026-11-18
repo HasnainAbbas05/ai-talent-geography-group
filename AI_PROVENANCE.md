@@ -12,6 +12,7 @@ Remove these instructions before submitting.
 - AI Response: python code for a stacked bar chart in streamlit
 - Verification: The resulting code was tested locally for functionality. The totals for imported talent and homegrown talent were verified one by one. This is to make sure that the code was able to read the data correctly as the data reading step could sometimes fail.
 - Outcome: The totals were read correctly and the code was subsequently used with some modifications on axis titles and colour schemes.
+---
 
 - Artefact: Bubble Chart
 - Group Member: Kiemas Zaidan
@@ -20,6 +21,7 @@ Remove these instructions before submitting.
 - AI Response: looks good.
 - Verification: tested locally, works fine.
 - Outcome: the colour scheme checks out.
+---
  
 - Artefact:
 - Group Member:
@@ -28,6 +30,7 @@ Remove these instructions before submitting.
 - AI Response:
 - Verification:
 - Outcome:
+---
  
 - Artefact:
 - Group Member:
