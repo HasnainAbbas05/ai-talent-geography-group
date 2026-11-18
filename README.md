@@ -21,7 +21,11 @@ By looking at the ‘Size vs retention’ visualisation, it can be seen that Chi
 
 Story #3:
 
-[ADD USER STORY HERE]
+As a government policy analyst, I want to see where researchers trained in a country end up working, and where a country’s workforce trained, so that I can tell whether researchers who move are spread across many destinations or concentrated in one, and which country a retention policy would be competing against.
+
+Looking at the ‘Where do researchers from (or in) a country end up?’ visualisation, I can see that of the 5,903 researchers who did their undergraduate degree in China, 1,847 now work elsewhere. The published career paths name the destination for 1,406 of them: 1,179 (63.8% of China’s leavers) work in the USA, 147 in Singapore and 80 in Europe. The other 441 are shown as “destination not published” and are not guessed. The USA is also the main destination overall. 2,300 of its 3,514 researchers trained elsewhere, which is 63.4% of all 3,626 cross-geography moves in the cohort. India shows the same pattern: all 246 of its named leavers (out of 370) work in the USA.
+
+Within this sample, researchers who move are concentrated in one destination, so retention policy in countries like China and India would be competing mainly with the USA. The destinations come from 18 selected career paths covering 79.9% of the cohort, and they show affiliation, not verified migration.
 
 Story #4:
 
