@@ -29,7 +29,7 @@ Within this sample, researchers who move are concentrated in one destination, so
 
 Story #4:
 
-As a technology policy minister in Australia, I want to see the ratio of homegrown versus imported AI researchers in our current workforce, so that I can determine whether we need to expand specialised visa programs to remain globally competitive or increase funding for domestic STEM education.
+As a government policy analyst in Australia, I want to see the ratio of homegrown versus imported AI researchers in our current workforce, so that I can determine whether we need to expand specialised visa programs to remain globally competitive or increase funding for domestic STEM education.
 
 Looking at the 'Workforce Composition' visualisation, I can see that countries like China and South Korea mainly rely on their homegrown talent to supply their AI workforce. On the other hand, the visualisation also shows that countries like the USA and Singapore rely heavily on researchers from overseas for their AI Workforce. The situation in Australia is similar to the latter, where there are more AI researchers from overseas compared to homegrown AI researchers. However, this is from a small baseline. Moving forward, it makes sense to increase funding for domestic programs to increase our homegrown AI workforce and remain globally competitive in the near future.
 
