@@ -15,9 +15,9 @@ The AI provenance matrix: a row per substantive AI use (artefact, who, tool, wha
 - Artefact: Bubble Chart
 - Group Member: Kiemas Zaidan
 - AI Tool: Claude
-- AI Question/Instruction: Checking for colour consistency on the previously made code to apply on this dashboard.
-- AI Response: looks good.
-- Verification: tested locally, works fine.
+- AI Question/Instruction: Checking for colouring consistency on the previously made code (from task 3A) to be applied on this dashboard.
+- AI Response: the code cycle through colour the same way so it should be consistent as intended.
+- Verification: tested on local machine.
 - Outcome: the colour scheme checks out.
 ---
  
