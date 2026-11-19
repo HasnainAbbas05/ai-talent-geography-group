@@ -1,8 +1,6 @@
 # AI Provenance
 
 The AI provenance matrix: a row per substantive AI use (artefact, who, tool, what was asked, what came back, how it was verified, outcome). Each member owns at least one row. The verification must name a check that could have failed.
-
-Remove these instructions before submitting.
 ---
 
 - Artefact: Stacked Bar Chart
