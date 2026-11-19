@@ -504,10 +504,18 @@ with tab_over:
             range=[0, ceiling * 1.23], showgrid=True,
             gridcolor="rgba(130,135,140,0.13)", zeroline=False,
         )
+        
         chart.update_layout(
-            title="Undergraduate education compared with the 2026 workplace",
-            barmode="group", bargap=0.27, bargroupgap=0.1,
-            legend=dict(orientation="h", x=0, y=1.08, yanchor="bottom"),
+            title=None,
+            barmode="group",
+            bargap=0.27,
+            bargroupgap=0.1,
+            legend=dict(
+                orientation="h",
+                x=0,
+                y=1.02,
+                yanchor="bottom"
+            ),
         )
         st.caption("**Blue** = undergraduate education geography; **amber** = 2026 workplace geography. "
                    "Both bars use the same 10,280-person denominator when percentages are selected.")
@@ -527,6 +535,9 @@ with tab_over:
         showgrid=False,
         automargin=True,
     )
+
+    if chart_mode.startswith("Train"):
+        st.markdown("#### Undergraduate education compared with the 2026 workplace")
     st.plotly_chart(chart, width="stretch", key="tab1_comparison_chart",
                     config={"displaylogo": False})
 
@@ -634,12 +645,34 @@ with tab_bubble:
                             line=dict(width=2, color="rgba(255,255,255,0.9)")),
                 customdata=sub[["retained", "left", "working"]],
                 hovertemplate="%{text}<br>Trained %{x:,}; stayed %{customdata[0]:,}; left %{customdata[1]:,}; working %{customdata[2]:,}<extra></extra>")
-        fig.update_layout(title="Training scale against retention, by country",
+        
+        fig.update_layout(
+            title=None,
             xaxis_title="Undergraduates trained (researchers, log scale)",
             yaxis_title="Retention (% of graduates working in the same country)",
-            yaxis_range=[0, 105])
+            yaxis_range=[0, 105],
+        )
+
         fig.update_xaxes(type="log")
-        st.plotly_chart(style(fig, 480), width="stretch")
+
+        fig = style(fig, 500)
+
+        fig.update_layout(
+            margin=dict(l=55, r=25, t=70, b=55),
+            legend=dict(
+                orientation="h",
+                x=0,
+                xanchor="left",
+                y=1.02,
+                yanchor="bottom"
+            ),
+        )
+
+        
+        st.markdown("#### Training scale against retention, by country")
+        st.plotly_chart(fig, width="stretch")
+
+
         st.caption(f"Bubble area = {size_by.lower()} (researchers). NeurIPS 2025 cohort, n={COHORT:,}, workplaces 2026. Grouped regions excluded.")
 
 
